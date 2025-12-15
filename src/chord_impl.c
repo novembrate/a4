@@ -247,27 +247,31 @@ Node find_successor(uint64_t id) {
 	else {
 		Node n_bar = closest_preceding_node(id);
 
-		// Using StartFindSuccessor should make it recursive, because it'll
-		// have the node it's messaging call find_successor
-		StartFindSuccessorRequest req = START_FIND_SUCCESSOR_REQUEST__INIT;
-		req.key = id;
-		ChordMessage msg = CHORD_MESSAGE__INIT;
-		msg.version = 417;
-		msg.find_successor_request = &req;
-		msg.msg_case = CHORD_MESSAGE__MSG_START_FIND_SUCCESSOR_REQUEST;
+		while (1) {
+			StartFindSuccessorRequest req = FIND_SUCCESSOR_REQUEST__INIT;
+			req.key = id;
+			ChordMessage msg = CHORD_MESSAGE__INIT;
+			msg.version = 417;
+			msg.find_successor_request = &req;
+			msg.msg_case = CHORD_MESSAGE__MSG_FIND_SUCCESSOR_REQUEST;
 
-		uint64_t* msg_len;
+			uint64_t* msg_len;
 
-		uint8_t* buffer = pack_chord_message(&msg, msg_len);
-		send_to_node(&n_bar, buffer, msg_len, NULL);
-		MessageResponse resp = wait_for_response(4, CHORD_MESSAGE__MSG_START_FIND_SUCCESSOR_RESPONSE);
-		
-		free(buffer);
+			uint8_t* buffer = pack_chord_message(&msg, msg_len);
+			send_to_node(&n_bar, buffer, msg_len, NULL);
+			MessageResponse resp = wait_for_response(4, CHORD_MESSAGE__MSG_FIND_SUCCESSOR_RESPONSE);
+			
+			free(buffer);
 
-		if (resp.type == CHORD_MESSAGE__MSG_START_FIND_SUCCESSOR_RESPONSE) {
-			return resp.node; 
-		} else {
-			printf("Wrong Message Type!\n");
+			if (resp.type == CHORD_MESSAGE__MSG_FIND_SUCCESSOR_RESPONSE) {
+				if (element_of(id, n_bar.key, resp.node.key, 1))
+					return resp.node; 
+				else {
+					n_bar = resp.node;
+				}
+			} else {
+				printf("Wrong Message Type!\n");
+			}
 		}
 	}
 }
