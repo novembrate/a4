@@ -200,7 +200,12 @@ void fix_successor_list() {
 void fix_fingers() {
     // TODO:
     // Periodically rebuild finger[i]
-
+	fixIndex = fixIndex + 1;
+	
+    if (fixIndex >= M) {
+        fixIndex = 0;
+    }
+    finger_table[fixIndex] = find_successor(hash + ((uint64_t)1 << fixIndex));
 	
 }
 
