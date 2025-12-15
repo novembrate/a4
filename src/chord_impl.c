@@ -196,110 +196,108 @@ void stabilize() {
 }
 
 void fix_successor_list() {
-	// TODO:
-    // 1) If id in (n, successor], return successor
-    // 2) Otherwise forward request to closest preceding node
+	// // TODO:
+    // // 1) If id in (n, successor], return successor
+    // // 2) Otherwise forward request to closest preceding node
 
-	GetSuccessorListRequest req = GET_SUCCESSOR_LIST_REQUEST__INIT;
-
-
-
-	ChordMessage msg = CHORD_MESSAGE__INIT;
-
-	msg.version = 417;
-
-	msg.get_successor_list_request = &req;
-
-	msg.msg_case = CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_REQUEST;
+	// GetSuccessorListRequest req = GET_SUCCESSOR_LIST_REQUEST__INIT;
 
 
 
-	uint64_t msg_len = 0;
+	// ChordMessage msg = CHORD_MESSAGE__INIT;
+
+	// msg.version = 417;
+
+	// msg.get_successor_list_request = &req;
+
+	// msg.msg_case = CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_REQUEST;
 
 
 
-	uint8_t* buffer = pack_chord_message(&msg, &msg_len);
-
-	send_to_node(&successor, buffer, msg_len, NULL);
-
-	MessageResponse resp = wait_for_response(3, CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE);
+	// uint64_t msg_len = 0;
 
 
 
-	if (resp.type == CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE) {
+	// uint8_t* buffer = pack_chord_message(&msg, &msg_len);
 
-		size_t num_entries = resp.n_successors;
+	// send_to_node(&successor, buffer, msg_len, NULL);
 
-
-
-		// Getting rid of original list
-
-		if (successor_list)
-
-			free(successor_list);
+	// MessageResponse resp = wait_for_response(3, CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE);
 
 
 
-		// Creating new one
+	// if (resp.type == CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE) {
 
-		successor_list = malloc(sizeof(Node) * (num_entries + 1));
-
-		successor_list[0] = successor; // Adding succesor to the start
+	// 	size_t num_entries = resp.n_successors;
 
 
 
-		// Filling the rest out with successor node's succesors
+	// 	// Getting rid of original list
 
-		for (size_t i = 0; i < num_entries; i++) {
+	// 	if (successor_list)
 
-			successor_list[i + 1] = resp.successors[i];
-
-		}
-
-	}
+	// 		free(successor_list);
 
 
-	// Node curr_succ = successor;
-	// int succ_index = 0;
 
-	// while (1) {
-	// 	GetSuccessorListRequest req = GET_SUCCESSOR_LIST_REQUEST__INIT;
+	// 	// Creating new one
 
-	// 	ChordMessage msg = CHORD_MESSAGE__INIT;
-	// 	msg.version = 417;
-	// 	msg.get_successor_list_request = &req;
-	// 	msg.msg_case = CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_REQUEST;
+	// 	successor_list = malloc(sizeof(Node) * (num_entries + 1));
 
-	// 	uint64_t msg_len = 0;
+	// 	successor_list[0] = successor; // Adding succesor to the start
 
-	// 	uint8_t* buffer = pack_chord_message(&msg, &msg_len);
-	// 	send_to_node(&curr_succ, buffer, msg_len, NULL);
-	// 	MessageResponse resp = wait_for_response(3, CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE);
 
-	// 	free(buffer);
 
-	// 	if (resp.type == CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE) {
-	// 		size_t num_entries = resp.n_successors;
+	// 	// Filling the rest out with successor node's succesors
 
-	// 		// Getting rid of original list
-	// 		if (successor_list)
-	// 			free(successor_list);
+	// 	for (size_t i = 0; i < num_entries; i++) {
 
-	// 		// Creating new one
-	// 		successor_list = malloc(sizeof(Node) * (num_entries + 1));
-	// 		successor_list[0] = curr_succ; // Adding succesor to the start
+	// 		successor_list[i + 1] = resp.successors[i];
 
-	// 		// Filling the rest out with successor node's succesors
-	// 		for (size_t i = 0; i < num_entries; i++) {
-	// 			successor_list[i + 1] = resp.successors[i];
-	// 		}
-
-	// 		return;
-	// 	} else {
-	// 		succ_index++;
-	// 		curr_succ = successor_list[succ_index];
 	// 	}
+
 	// }
+
+	int succ_index = 0;
+
+	while (1) {
+		GetSuccessorListRequest req = GET_SUCCESSOR_LIST_REQUEST__INIT;
+
+		ChordMessage msg = CHORD_MESSAGE__INIT;
+		msg.version = 417;
+		msg.get_successor_list_request = &req;
+		msg.msg_case = CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_REQUEST;
+
+		uint64_t msg_len = 0;
+
+		uint8_t* buffer = pack_chord_message(&msg, &msg_len);
+		send_to_node(&successor, buffer, msg_len, NULL);
+		MessageResponse resp = wait_for_response(3, CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE);
+
+		free(buffer);
+
+		if (resp.type == CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE) {
+			size_t num_entries = resp.n_successors;
+
+			// Getting rid of original list
+			if (successor_list)
+				free(successor_list);
+
+			// Creating new one
+			successor_list = malloc(sizeof(Node) * (num_entries + 1));
+			successor_list[0] = successor; // Adding succesor to the start
+
+			// Filling the rest out with successor node's succesors
+			for (size_t i = 0; i < num_entries; i++) {
+				successor_list[i + 1] = resp.successors[i];
+			}
+
+			return;
+		} else {
+			succ_index++;
+			successor = successor_list[succ_index];
+		}
+	}
 }
 
 void fix_fingers() {
