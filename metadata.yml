@@ -1,0 +1,14 @@
+---
+:id: 328706527
+:submitters:
+- :name: Kaiwen Song
+  :email: ksong126@terpmail.umd.edu
+- :name: Davis Xu
+  :email: dx366@terpmail.umd.edu
+:created_at: !ruby/object:ActiveSupport::TimeWithZone
+  utc: 2025-04-25 21:44:07.078731000 Z
+  zone: !ruby/object:ActiveSupport::TimeZone
+    name: America/Los_Angeles
+  time: 2025-04-25 14:44:07.078731000 Z
+:status: processed
+:score: 200.0
