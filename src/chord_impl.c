@@ -203,18 +203,19 @@ void fix_successor_list() {
 	msg.get_successor_list_request = &req;
 	msg.msg_case = CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_REQUEST;
 
-	uint64_t* msg_len = 0;
+	uint64_t msg_len = 0;
 
-	uint8_t* buffer = pack_chord_message(&msg, msg_len);
-	send_to_node(&successor, buffer, *msg_len, NULL);
+	uint8_t* buffer = pack_chord_message(&msg, &msg_len);
+	send_to_node(&successor, buffer, msg_len, NULL);
 	MessageResponse resp = wait_for_response(3, CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE);
 
 	if (resp.type == CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE) {
 		size_t num_entries = resp.n_successors;
 
 		// Getting rid of original list
-		free(successor_list);
-		
+		if (successor_list)
+			free(successor_list);
+
 		// Creating new one
 		successor_list = malloc(sizeof(Node) * (num_entries + 1));
 		successor_list[0] = successor; // Adding succesor to the start
@@ -224,6 +225,7 @@ void fix_successor_list() {
 			successor_list[i + 1] = resp.successors[i];
 		}
 	}
+	printf("end of fix_successor_lsit\n");
 }
 
 void fix_fingers() {
@@ -239,6 +241,7 @@ void fix_fingers() {
 }
 
 Node find_successor(uint64_t id) {	
+	printf("start of find_successor\n");
     // 1) If id in (n, successor], return successor
 	if (element_of(id, hash, successor.key, 1)) {
 		return successor;
@@ -255,17 +258,19 @@ Node find_successor(uint64_t id) {
 			msg.find_successor_request = &req;
 			msg.msg_case = CHORD_MESSAGE__MSG_FIND_SUCCESSOR_REQUEST;
 
-			uint64_t* msg_len = 0;
+			uint64_t msg_len = 0;
 
-			uint8_t* buffer = pack_chord_message(&msg, msg_len);
-			send_to_node(&n_bar, buffer, *msg_len, NULL);
+			uint8_t* buffer = pack_chord_message(&msg, &msg_len);
+			send_to_node(&n_bar, buffer, msg_len, NULL);
 			MessageResponse resp = wait_for_response(4, CHORD_MESSAGE__MSG_FIND_SUCCESSOR_RESPONSE);
 			
 			free(buffer);
 
 			if (resp.type == CHORD_MESSAGE__MSG_FIND_SUCCESSOR_RESPONSE) {
-				if (element_of(id, n_bar.key, resp.node.key, 1))
+				if (element_of(id, n_bar.key, resp.node.key, 1)) {
+					printf("end of find_successor\n");
 					return resp.node; 
+				}
 				else {
 					n_bar = resp.node;
 				}
