@@ -225,7 +225,6 @@ void fix_successor_list() {
 			successor_list[i + 1] = resp.successors[i];
 		}
 	}
-	printf("end of fix_successor_lsit\n");
 }
 
 void fix_fingers() {
@@ -241,7 +240,6 @@ void fix_fingers() {
 }
 
 Node find_successor(uint64_t id) {	
-	printf("start of find_successor\n");
     // 1) If id in (n, successor], return successor
 	if (element_of(id, hash, successor.key, 1)) {
 		return successor;
@@ -268,7 +266,6 @@ Node find_successor(uint64_t id) {
 
 			if (resp.type == CHORD_MESSAGE__MSG_FIND_SUCCESSOR_RESPONSE) {
 				if (element_of(id, n_bar.key, resp.node.key, 1)) {
-					printf("end of find_successor\n");
 					return resp.node; 
 				}
 				else {
