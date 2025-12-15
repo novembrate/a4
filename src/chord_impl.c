@@ -200,6 +200,7 @@ void fix_successor_list() {
 void fix_fingers() {
     // TODO:
     // Periodically rebuild finger[i]
+
 	
 }
 
@@ -213,17 +214,11 @@ Node find_successor(uint64_t id) {
 Node closest_preceding_node(uint64_t id) {
     // TODO:
     // Scan finger table for closest predecessor
-	for(int i = M - 1; i >= 0; i--) {
-		if(element_of(finger_table[i].key, hash, id, 0) && finger_table[i].key != 0) {
-			return finger_table[i];
-		}
-	}
-
-	for(int i = chord_args.num_successors - 1; i >= 0; i--) {
-		if(element_of(successor_list[i].key, hash, id, 0) && successor_list[i].key != 0) {
-			return successor_list[i];
-		}
-	}
+	for (int i = M - 1; i >= 0; i--) {
+        if (finger_table[i].key != 0 && element_of(finger_table[i].key, hash, id, 0)) {
+            return finger_table[i];
+        }
+    }
 
 	return self;
 }
