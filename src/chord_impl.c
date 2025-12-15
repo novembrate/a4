@@ -1,3 +1,7 @@
+// Group Members:
+// Mithil Bandi
+// Advait Vartak
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -196,33 +200,45 @@ void fix_successor_list() {
     // 1) If id in (n, successor], return successor
     // 2) Otherwise forward request to closest preceding node
 
-	GetSuccessorListRequest req = GET_SUCCESSOR_LIST_REQUEST__INIT;
+	Node curr_succ = successor;
+	int succ_index = 0;
 
-	ChordMessage msg = CHORD_MESSAGE__INIT;
-	msg.version = 417;
-	msg.get_successor_list_request = &req;
-	msg.msg_case = CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_REQUEST;
+	while (1) {
+		GetSuccessorListRequest req = GET_SUCCESSOR_LIST_REQUEST__INIT;
 
-	uint64_t msg_len = 0;
+		ChordMessage msg = CHORD_MESSAGE__INIT;
+		msg.version = 417;
+		msg.get_successor_list_request = &req;
+		msg.msg_case = CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_REQUEST;
 
-	uint8_t* buffer = pack_chord_message(&msg, &msg_len);
-	send_to_node(&successor, buffer, msg_len, NULL);
-	MessageResponse resp = wait_for_response(3, CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE);
+		uint64_t msg_len = 0;
 
-	if (resp.type == CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE) {
-		size_t num_entries = resp.n_successors;
+		uint8_t* buffer = pack_chord_message(&msg, &msg_len);
+		send_to_node(&curr_succ, buffer, msg_len, NULL);
+		MessageResponse resp = wait_for_response(3, CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE);
 
-		// Getting rid of original list
-		if (successor_list)
-			free(successor_list);
+		free(buffer);
 
-		// Creating new one
-		successor_list = malloc(sizeof(Node) * (num_entries + 1));
-		successor_list[0] = successor; // Adding succesor to the start
+		if (resp.type == CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE) {
+			size_t num_entries = resp.n_successors;
 
-		// Filling the rest out with successor node's succesors
-		for (size_t i = 0; i < num_entries; i++) {
-			successor_list[i + 1] = resp.successors[i];
+			// Getting rid of original list
+			if (successor_list)
+				free(successor_list);
+
+			// Creating new one
+			successor_list = malloc(sizeof(Node) * (num_entries + 1));
+			successor_list[0] = curr_succ; // Adding succesor to the start
+
+			// Filling the rest out with successor node's succesors
+			for (size_t i = 0; i < num_entries; i++) {
+				successor_list[i + 1] = resp.successors[i];
+			}
+
+			return;
+		} else {
+			succ_index++;
+			curr_succ = successor_list[succ_index];
 		}
 	}
 }
