@@ -200,13 +200,13 @@ void fix_successor_list() {
 
 	ChordMessage msg = CHORD_MESSAGE__INIT;
 	msg.version = 417;
-	msg.find_successor_request = &req;
+	msg.get_successor_list_request = &req;
 	msg.msg_case = CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_REQUEST;
 
-	uint64_t* msg_len;
+	uint64_t* msg_len = 0;
 
 	uint8_t* buffer = pack_chord_message(&msg, msg_len);
-	send_to_node(&successor, buffer, msg_len, NULL);
+	send_to_node(&successor, buffer, *msg_len, NULL);
 	MessageResponse resp = wait_for_response(3, CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE);
 
 	if (resp.type == CHORD_MESSAGE__MSG_GET_SUCCESSOR_LIST_RESPONSE) {
@@ -220,7 +220,7 @@ void fix_successor_list() {
 		successor_list[0] = successor; // Adding succesor to the start
 
 		// Filling the rest out with successor node's succesors
-		for (int i = 0; i < num_entries; i++) {
+		for (size_t i = 0; i < num_entries; i++) {
 			successor_list[i + 1] = resp.successors[i];
 		}
 	}
@@ -248,17 +248,17 @@ Node find_successor(uint64_t id) {
 		Node n_bar = closest_preceding_node(id);
 
 		while (1) {
-			StartFindSuccessorRequest req = FIND_SUCCESSOR_REQUEST__INIT;
+			FindSuccessorRequest req = FIND_SUCCESSOR_REQUEST__INIT;
 			req.key = id;
 			ChordMessage msg = CHORD_MESSAGE__INIT;
 			msg.version = 417;
 			msg.find_successor_request = &req;
 			msg.msg_case = CHORD_MESSAGE__MSG_FIND_SUCCESSOR_REQUEST;
 
-			uint64_t* msg_len;
+			uint64_t* msg_len = 0;
 
 			uint8_t* buffer = pack_chord_message(&msg, msg_len);
-			send_to_node(&n_bar, buffer, msg_len, NULL);
+			send_to_node(&n_bar, buffer, *msg_len, NULL);
 			MessageResponse resp = wait_for_response(4, CHORD_MESSAGE__MSG_FIND_SUCCESSOR_RESPONSE);
 			
 			free(buffer);
