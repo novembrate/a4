@@ -178,11 +178,39 @@ void fix_fingers() {
 	
 }
 
-Node find_successor(uint64_t id) {
-        // TODO:
+Node find_successor(uint64_t id) {	
     // 1) If id in (n, successor], return successor
+	if (element_of(id, hash, successor.key, 1)) {
+		return successor;
+	}
     // 2) Otherwise forward request to closest preceding node
-	
+	else {
+		Node n_bar = closest_preceding_node(id);
+
+		// Using StartFindSuccessor should make it recursive, because it'll
+		// have the node it's messaging call find_successor
+		StartFindSuccessorRequest req = START_FIND_SUCCESSOR_REQUEST__INIT;
+		req.key = id;
+		ChordMessage msg = CHORD_MESSAGE__INIT;
+		msg.version = 417;
+		msg.find_successor_request = &req;
+		msg.msg_case = CHORD_MESSAGE__MSG_START_FIND_SUCCESSOR_REQUEST;
+
+		uint64_t* msg_len;
+
+		uint8_t* buffer = pack_chord_message(&msg, msg_len);
+		send_to_node(&n_bar, buffer, msg_len, NULL);
+		MessageResponse resp = wait_for_response(CHORD_MESSAGE__MSG_START_FIND_SUCCESSOR_REQUEST, 
+			CHORD_MESSAGE__MSG_START_FIND_SUCCESSOR_REQUEST);
+		
+		free(buffer);
+
+		if (resp.type == CHORD_MESSAGE__MSG_START_FIND_SUCCESSOR_REQUEST) {
+			return resp.node; 
+		} else {
+			printf("Wrong Message Type!\n");
+		}
+	}
 }
 
 Node closest_preceding_node(uint64_t id) {
